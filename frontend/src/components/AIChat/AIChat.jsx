@@ -6,12 +6,13 @@ import {
   Box,
   Typography,
   Divider,
+  Chip,
 } from "@mui/material";
+
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 import ChatBubble from "./ChatBubble";
 import ChatInput from "./ChatInput";
-import StatusCard from "./StatusCard";
-import CapabilityChips from "./CapabilityChips";
 import ThinkingAnimation from "./ThinkingAnimation";
 
 import { addMessage } from "../../redux/chatSlice";
@@ -32,12 +33,7 @@ export default function AIChat() {
 
   const handleSend = async () => {
 
-    console.log("========== AI CHAT ==========");
-
-    if (!input.trim()) {
-      console.log("Input Empty");
-      return;
-    }
+    if (!input.trim()) return;
 
     const userMessage = input;
 
@@ -54,11 +50,7 @@ export default function AIChat() {
 
     try {
 
-      console.log("Calling Backend...");
-
       const response = await sendMessage(userMessage);
-
-      console.log("Backend Response:", response);
 
       dispatch(
         addMessage({
@@ -71,17 +63,12 @@ export default function AIChat() {
         setInteraction(response.interaction)
       );
 
-      console.log("Redux Updated");
-
     } catch (error) {
-
-      console.error("API ERROR:", error);
 
       dispatch(
         addMessage({
           sender: "ai",
-          text:
-            "Unable to contact AI Backend.",
+          text: "Unable to contact AI Backend.",
         })
       );
 
@@ -97,15 +84,24 @@ export default function AIChat() {
     <Paper
       elevation={3}
       sx={{
-        height: "80vh",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
         borderRadius: 3,
+        overflow: "hidden",
+        boxShadow: "0 16px 40px rgba(16, 24, 40, 0.08)",
       }}
     >
-      <Box p={2}>
+      <Box
+        sx={{
+          p: 3,
+          textAlign: "center",
+          backgroundColor: "#ffffff",
+        }}
+      >
+
         <Typography
-          variant="h6"
+          variant="h5"
           fontWeight="bold"
         >
           🤖 AI Assistant
@@ -117,44 +113,96 @@ export default function AIChat() {
         >
           AI First CRM Assistant
         </Typography>
+
       </Box>
 
       <Divider />
+      <Box
+        sx={{
+          p: 2,
+          textAlign: "center",
+          backgroundColor: "#f7fbff",
+        }}
+      >
 
-      <Box p={2}>
-        <StatusCard />
-        <CapabilityChips />
+        <Typography
+          variant="subtitle1"
+          mb={2}
+          sx={{ fontWeight: 600 }}
+        >
+          AI Status
+        </Typography>
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+
+          <Chip
+            icon={<CheckCircleIcon />}
+            label="Ready"
+            color="success"
+            sx={{
+              fontWeight: "bold",
+            }}
+          />
+
+        </Box>
+
+        <Typography
+          mt={1}
+          color="text.secondary"
+        >
+          Waiting for interaction...
+        </Typography>
       </Box>
-
       <Divider />
+
+      {/* Messages */}
 
       <Box
         sx={{
           flex: 1,
           overflowY: "auto",
-          p: 2,
+          p: 3,
+          background: "#f8fbff",
         }}
       >
+
         {messages.map((msg, index) => (
+
           <ChatBubble
             key={index}
             sender={msg.sender}
             text={msg.text}
           />
+
         ))}
 
         {loading && <ThinkingAnimation />}
+
       </Box>
 
       <Divider />
+      <Box
+        sx={{
+          p: 2,
+          background: "#ffffff",
+        }}
+      >
 
-      <Box p={2}>
         <ChatInput
           value={input}
           setValue={setInput}
           onSend={handleSend}
         />
+
       </Box>
+
     </Paper>
+
   );
+
 }

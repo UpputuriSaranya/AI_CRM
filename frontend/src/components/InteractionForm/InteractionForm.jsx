@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { saveInteraction } from "../../services/interactionService";
 
 import {
   Paper,
@@ -19,6 +20,19 @@ const interactionTypes = [
   "Conference",
 ];
 
+const getBrowserDate = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getBrowserTime = (date = new Date()) => {
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
 export default function InteractionForm() {
 
   const reduxData = useSelector(
@@ -26,6 +40,9 @@ export default function InteractionForm() {
   );
 
   const [reviewMode, setReviewMode] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [dateTouched, setDateTouched] = useState(false);
+  const [timeTouched, setTimeTouched] = useState(false);
 
   const [formData, setFormData] = useState({
     hcpName: "",
@@ -41,35 +58,104 @@ export default function InteractionForm() {
   });
 
   useEffect(() => {
+    setFormData((current) => ({
+      ...current,
+      date: getBrowserDate(),
+      time: getBrowserTime(),
+    }));
+  }, []);
 
+  useEffect(() => {
     if (reduxData) {
-
-      setFormData((prev) => ({
-        ...prev,
-        ...reduxData,
+      setFormData((prevFormData) => ({
+        hcpName: reduxData.hcpName || prevFormData.hcpName,
+        interactionType: reduxData.interactionType || prevFormData.interactionType,
+        date: reduxData.date || prevFormData.date,
+        time: reduxData.time || prevFormData.time,
+        attendees: reduxData.attendees || prevFormData.attendees,
+        topics: reduxData.topics || prevFormData.topics,
+        materials: reduxData.materials || prevFormData.materials,
+        samples: reduxData.samples || prevFormData.samples,
+        followUp: reduxData.followUp || prevFormData.followUp,
+        notes: reduxData.notes || prevFormData.notes,
       }));
-
     }
-
   }, [reduxData]);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        date: dateTouched ? prevFormData.date : getBrowserDate(),
+        time: timeTouched ? prevFormData.time : getBrowserTime(),
+      }));
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [dateTouched, timeTouched]);
+
   const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    if (name === "date") {
+      setDateTouched(true);
+    }
+
+    if (name === "time") {
+      setTimeTouched(true);
+    }
 
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+  };
+
+  const handleSave = async () => {
+
+    try {
+
+      setSaving(true);
+
+      console.log("Saving Interaction...");
+      console.log(formData);
+
+      const response = await saveInteraction(formData);
+
+      console.log(response);
+
+      alert("Interaction Saved Successfully!");
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+      alert("Unable to Save Interaction");
+
+    }
+
+    finally {
+
+      setSaving(false);
+
+    }
 
   };
 
   return (
+
     <Paper
-      elevation={2}
-      sx={{
-        p: 3,
-        borderRadius: 3,
-      }}
+        elevation={3}
+        sx={{
+            p:2,
+            borderRadius:3,
+            height:"100%",
+            overflow:"auto"
+        }}
     >
+
       <Box
         sx={{
           display: "flex",
@@ -78,7 +164,11 @@ export default function InteractionForm() {
           mb: 2,
         }}
       >
-        <Typography variant="h6" fontWeight="bold">
+
+        <Typography
+          variant="h5"
+          fontWeight="bold"
+        >
           AI Extracted Details
         </Typography>
 
@@ -86,37 +176,38 @@ export default function InteractionForm() {
           label="AI Filled"
           color="success"
         />
+
       </Box>
 
       <Typography
         color="text.secondary"
         mb={3}
       >
-        Review extracted information before saving.
+        Review the extracted details before saving.
       </Typography>
 
       <Grid container spacing={2}>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <TextField
             fullWidth
-            name="hcpName"
             label="HCP Name"
+            name="hcpName"
             value={formData.hcpName}
-            disabled={!reviewMode}
             onChange={handleChange}
+            disabled={!reviewMode}
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <TextField
-            select
             fullWidth
-            name="interactionType"
+            select
             label="Interaction Type"
+            name="interactionType"
             value={formData.interactionType}
-            disabled={!reviewMode}
             onChange={handleChange}
+            disabled={!reviewMode}
           >
             {interactionTypes.map((type) => (
               <MenuItem key={type} value={type}>
@@ -126,101 +217,105 @@ export default function InteractionForm() {
           </TextField>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <TextField
             fullWidth
             type="date"
-            name="date"
             label="Date"
+            name="date"
             value={formData.date}
-            InputLabelProps={{ shrink: true }}
-            disabled={!reviewMode}
             onChange={handleChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            disabled={!reviewMode}
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <TextField
             fullWidth
             type="time"
-            name="time"
             label="Time"
+            name="time"
             value={formData.time}
-            InputLabelProps={{ shrink: true }}
-            disabled={!reviewMode}
             onChange={handleChange}
+            InputLabelProps={{
+              shrink: true,
+            }}
+            disabled={!reviewMode}
           />
         </Grid>
 
-        <Grid size={{ xs: 12 }}>
+        <Grid item xs={12}>
           <TextField
             fullWidth
-            name="attendees"
             label="Attendees"
+            name="attendees"
             value={formData.attendees}
-            disabled={!reviewMode}
             onChange={handleChange}
+            disabled={!reviewMode}
           />
         </Grid>
 
-        <Grid size={{ xs: 12 }}>
+        <Grid item xs={12}>
           <TextField
             fullWidth
             multiline
             rows={3}
-            name="topics"
             label="Topics Discussed"
+            name="topics"
             value={formData.topics}
-            disabled={!reviewMode}
             onChange={handleChange}
+            disabled={!reviewMode}
           />
         </Grid>
 
-        <Grid size={{ xs: 12 }}>
+        <Grid item xs={12}>
           <TextField
             fullWidth
             multiline
             rows={2}
-            name="materials"
             label="Materials Shared"
+            name="materials"
             value={formData.materials}
-            disabled={!reviewMode}
             onChange={handleChange}
+            disabled={!reviewMode}
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <TextField
             fullWidth
-            name="samples"
             label="Samples"
+            name="samples"
             value={formData.samples}
-            disabled={!reviewMode}
             onChange={handleChange}
+            disabled={!reviewMode}
           />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid item xs={12} md={6}>
           <TextField
             fullWidth
-            name="followUp"
             label="Follow Up"
+            name="followUp"
             value={formData.followUp}
-            disabled={!reviewMode}
             onChange={handleChange}
+            disabled={!reviewMode}
           />
         </Grid>
 
-        <Grid size={{ xs: 12 }}>
+        <Grid item xs={12}>
           <TextField
             fullWidth
             multiline
             rows={3}
-            name="notes"
             label="Notes"
+            name="notes"
             value={formData.notes}
-            disabled={!reviewMode}
             onChange={handleChange}
+            disabled={!reviewMode}
           />
         </Grid>
 
@@ -231,19 +326,30 @@ export default function InteractionForm() {
           mt: 3,
           display: "flex",
           gap: 2,
+          flexWrap: "wrap",
         }}
       >
+
         <Button
           variant="outlined"
           onClick={() => setReviewMode(!reviewMode)}
+          sx={{ textTransform: "none", minWidth: 120 }}
         >
-          {reviewMode ? "Lock" : "Edit"}
+          {reviewMode ? "LOCK" : "EDIT"}
         </Button>
 
-        <Button variant="contained">
-          Review & Save
+        <Button
+          variant="contained"
+          onClick={handleSave}
+          disabled={saving}
+          sx={{ textTransform: "none", minWidth: 160 }}
+        >
+          {saving ? "Saving..." : "REVIEW & SAVE"}
         </Button>
+
       </Box>
+
     </Paper>
+
   );
 }

@@ -1,7 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.database.db import Base
+from app.database.db import engine
+
+from app.models.interaction import Interaction
+
 from app.api.chat import router as chat_router
+from app.api.dashboard import router as dashboard_router
+from app.api.interaction import router as interaction_router
+
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="AI CRM Backend",
@@ -10,7 +19,9 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -18,8 +29,16 @@ app.add_middleware(
 
 app.include_router(chat_router)
 
+app.include_router(interaction_router)
+
+app.include_router(dashboard_router)
+
+
 @app.get("/")
 def root():
+
     return {
+
         "message": "AI CRM Backend Running"
+
     }

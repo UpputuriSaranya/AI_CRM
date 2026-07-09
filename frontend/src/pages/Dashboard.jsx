@@ -11,25 +11,52 @@ export default function Dashboard() {
 
       <Box
         sx={{
-          background: "#F4F6F8",
-          minHeight: "100vh",
-          p: 3,
+          height: "calc(100vh - 64px)",
+          backgroundColor: "#f5f7fb",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          p: 2,
         }}
       >
         <Typography
-          variant="h4"
-          fontWeight="bold"
-          mb={3}
+          variant="h3"
+          align="center"
+          sx={{
+            fontWeight: 400,
+            color: "#4a4a68",
+            fontFamily: "Inter, sans-serif",
+            mb: 2,
+          }}
         >
           AI-First HCP Interaction Logger
         </Typography>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={7}>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            flex: 1,
+            overflow: "hidden",
+          }}
+        >
+          {/* Left Side */}
+          <Grid
+            size={{ xs: 12, md: 7 }}
+            sx={{
+              height: "100%",
+            }}
+          >
             <InteractionForm />
           </Grid>
 
-          <Grid item xs={12} md={5}>
+          {/* Right Side */}
+          <Grid
+            size={{ xs: 12, md: 5 }}
+            sx={{
+              height: "100%",
+            }}
+          >
             <AIChat />
           </Grid>
         </Grid>

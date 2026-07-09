@@ -1,27 +1,31 @@
-import { AppBar, Toolbar, Typography, Avatar, Box } from "@mui/material";
+import { AppBar, Toolbar, Typography } from "@mui/material";
 
 export default function Navbar() {
   return (
     <AppBar
       position="static"
-      elevation={1}
+      elevation={0}
       sx={{
-        backgroundColor: "#fff",
-        color: "#333",
+        backgroundColor: "#ffffff",
+        color: "#222",
+        borderBottom: "1px solid #e0e0e0",
       }}
     >
-      <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Typography variant="h5" fontWeight="bold">
+      <Toolbar
+        sx={{
+          minHeight: "64px",
+          px: 4,
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 500,
+            fontFamily: "Inter, sans-serif",
+          }}
+        >
           AI CRM
         </Typography>
-
-        <Box display="flex" alignItems="center" gap={2}>
-          <Typography>Field Representative</Typography>
-
-          <Avatar sx={{ bgcolor: "#1976d2" }}>
-            F
-          </Avatar>
-        </Box>
       </Toolbar>
     </AppBar>
   );
